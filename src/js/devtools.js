@@ -1,3 +1,4 @@
+//global chrome
 chrome.devtools.panels.elements.createSidebarPane(
     "Css Path",
     function(sidebar) {

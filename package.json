@@ -1,0 +1,27 @@
+{
+  "name": "CssPath",
+  "version": "0.1.0",
+  "description": "usefull lib for getting selector from web element ",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flamencist/CssPath.git"
+  },
+  "keywords": [
+    "selector",
+    "css",
+    "path"
+  ],
+  "author": "A.Chermyanin (flamencist)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flamencist/CssPath/issues"
+  },
+  "homepage": "https://github.com/flamencist/CssPath",
+  "devDependencies": {
+    "gulp-crx-pack": "^1.0.1"
+  }
+}
