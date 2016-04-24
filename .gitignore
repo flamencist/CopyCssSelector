@@ -4,8 +4,6 @@
 *.sln
 *.config
 /certs/key.pem
-[Bb]uild/
-!/build/.gitkeep
 
 # User-specific files
 *.suo
@@ -249,3 +247,4 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/build/CssPath.crx
