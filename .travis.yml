@@ -13,5 +13,6 @@ deploy:
   file: build/CssPath.crx
   on:
     tags:true
+	all_branches: true
   overwrite: true
   skip_cleanup: true
