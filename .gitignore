@@ -4,6 +4,8 @@
 *.sln
 *.config
 /certs/key.pem
+[Bb]uild/
+!/build/.gitkeep
 
 # User-specific files
 *.suo
@@ -21,7 +23,7 @@
 [Rr]eleases/
 [Xx]64/
 [Xx]86/
-[Bb]uild/
+
 bld/
 [Bb]in/
 [Oo]bj/
