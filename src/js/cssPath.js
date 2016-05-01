@@ -1,10 +1,111 @@
 // The function below is executed in the context of the inspected page.
-var cssPath = function(node) {
+var cssPath = function(node, optimized) {
+
+    //#region shim for ie < 9
+    var call = Function.call;
+
     /**
-  * @param {!WebInspector.DOMNode} node
-  * @param {boolean=} optimized
-  * @return {string}
-  */
+     * wrap function and use first argument as context (this) in returned function
+     * @param f {Function} function for call
+     * @returns {Function}
+     */
+    function uncurryThis(f) {
+        return function () {
+            return call.apply(f, arguments);
+        };
+    }
+
+    /**
+     * check function is native
+     * @param f {Function} function
+     * @returns {boolean}
+     */
+    var isFuncNative = function(f) {
+        return !!f && (typeof f).toLowerCase() === "function"
+            && (f === Function.prototype
+            || /^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*\{\s*\[native code\]\s*\}\s*$/i.test(String(f)));
+    };
+
+
+    var array_reduce = uncurryThis(
+        Array.prototype.reduce && isFuncNative(Array.prototype.reduce) ? Array.prototype.reduce : function (callback, basis) {
+            var index = 0,
+                length = this.length;
+            // concerning the initial value, if one is not provided
+            if (arguments.length === 1) {
+                // seek to the first value in the array, accounting
+                // for the possibility that is is a sparse array
+                do {
+                    if (index in this) {
+                        basis = this[index++];
+                        break;
+                    }
+                    if (++index >= length) {
+                        throw new TypeError();
+                    }
+                } while (1);
+            }
+            // reduce
+            for (; index < length; index++) {
+                // account for the possibility that the array is sparse
+                if (index in this) {
+                    basis = callback(basis, this[index], index);
+                }
+            }
+            return basis;
+        }
+    );
+
+    var array_map = uncurryThis(
+        Array.prototype.map && isFuncNative(Array.prototype.map) ? Array.prototype.map : function (callback, thisp) {
+            var self = this;
+            var collect = [];
+            array_reduce(self, function (undefined, value, index) {
+                collect.push(callback.call(thisp, value, index, self));
+            }, void 0);
+            return collect;
+        }
+    );
+
+    var array_filter = uncurryThis(
+        Array.prototype.filter && isFuncNative(Array.prototype.filter) ? Array.prototype.filter :
+            function (predicate, that) {
+                var other = [], v;
+                for (var i = 0, n = this.length; i < n; i++)
+                    if (i in this && predicate.call(that, v = this[i], i, this))
+                        other.push(v);
+                return other;
+            }
+    );
+    //#endregion
+
+    /**
+     * get full path of node
+     * @param {Node} node
+     * @return {string}
+     */
+    function getPath(node){
+        if (!node || node.nodeType !== 1)
+            return "";
+        var steps = [];
+        var contextNode = node;
+        while (contextNode) {
+            var step = cssPathStep(contextNode, false, contextNode === node, true);
+            if (!step)
+                break; // Error - bail out early.
+            steps.push(step);
+            contextNode = contextNode.parentNode;
+        }
+
+        steps.reverse();
+        return steps.join(" ");
+    }
+
+    /**
+     * @param {Node} node
+     * @param {boolean=} optimized
+     * @return {string}
+     */
     function getSelector(node, optimized) {
         if (!node || node.nodeType !== 1)
             return "";
@@ -12,7 +113,7 @@ var cssPath = function(node) {
         var steps = [];
         var contextNode = node;
         while (contextNode) {
-            var step = cssPathStep(contextNode, !!optimized, contextNode === node);
+            var step = cssPathStep(contextNode, !!optimized, contextNode === node, false);
             if (!step)
                 break; // Error - bail out early.
             steps.push(step);
@@ -23,14 +124,14 @@ var cssPath = function(node) {
 
         steps.reverse();
         return steps.join(" > ");
-    };
+    }
 
     /**
      * @constructor
      * @param {string} value
      * @param {boolean} optimized
      */
-    var DomNodePathStep = function(value, optimized) {
+    var DomNodePathStep = function (value, optimized) {
         this.value = value;
         this.optimized = optimized || false;
     };
@@ -39,18 +140,23 @@ var cssPath = function(node) {
         /**
          * @return {string}
          */
-        toString: function() {
+        toString: function () {
             return this.value;
         }
     };
 
+    var getClassName = function (node) {
+        return node.getAttribute("class") || node.className;
+    };
+
     /**
-     * @param {!DOMNode} node
+     * @param {!Node} node
      * @param {boolean} optimized
      * @param {boolean} isTargetNode
-     * @return {?}
+     * @param {boolean} withoutNthChild Not show nth-child in selector\path
+     * @return {DomNodePathStep}
      */
-    function cssPathStep(node, optimized, isTargetNode) {
+    function cssPathStep(node, optimized, isTargetNode, withoutNthChild) {
         if (node.nodeType !== 1)
             return null;
 
@@ -71,15 +177,17 @@ var cssPath = function(node) {
             return new DomNodePathStep(nodeName, true);
 
         /**
-         * @param {!DOMNode} node
+         * @param {!Node} node
          * @return {!Array.<string>}
          */
         function prefixedElementClassNames(node) {
-            var classAttribute = node.getAttribute("class");
+            var classAttribute = getClassName(node);
             if (!classAttribute)
                 return [];
 
-            return classAttribute.split(/\s+/g).filter(Boolean).map(function(name) {
+            var classes = classAttribute.split(/\s+/g);
+            var existClasses = array_filter(classes, Boolean);
+            return array_map(existClasses, function (name) {
                 // The prefix is required to store "__proto__" in a object-based map.
                 return "$" + name;
             });
@@ -102,7 +210,7 @@ var cssPath = function(node) {
                 return ident;
             var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);
             var lastIndex = ident.length - 1;
-            return ident.replace(/./g, function(c, i) {
+            return ident.replace(/./g, function (c, i) {
                 return ((shouldEscapeFirst && i === 0) || !isCssIdentChar(c)) ? escapeAsciiChar(c, i === lastIndex) : c;
             });
         }
@@ -145,13 +253,13 @@ var cssPath = function(node) {
         }
 
         var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
-        var needsClassNames = false;
+        var needsClassNames = withoutNthChild;
         var needsNthChild = false;
         var ownIndex = -1;
         var elementIndex = -1;
         var siblings = parent.children || [];
         for (var i = 0;
-        (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
+             (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
             var sibling = siblings[i];
             if (sibling.nodeType !== 1)
                 continue;
@@ -171,7 +279,7 @@ var cssPath = function(node) {
             for (var name in ownClassNames)
                 if (ownClassNames.hasOwnProperty(name))++ownClassNameCount;
             if (ownClassNameCount === 0) {
-                needsNthChild = true;
+                needsNthChild = !withoutNthChild;
                 continue;
             }
             var siblingClassNamesArray = prefixedElementClassNames(sibling);
@@ -181,14 +289,14 @@ var cssPath = function(node) {
                     continue;
                 delete ownClassNames[siblingClass];
                 if (!--ownClassNameCount) {
-                    needsNthChild = true;
+                    needsNthChild = !withoutNthChild;
                     break;
                 }
             }
         }
 
         var result = nodeName;
-        if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
+        if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !getClassName(node))
             result += "[type=\"" + node.getAttribute("type") + "\"]";
         if (needsNthChild) {
             result += ":nth-child(" + (ownIndex + 1) + ")";
@@ -200,9 +308,9 @@ var cssPath = function(node) {
         return new DomNodePathStep(result, false);
     }
 
-
     /**
-     * @param {array}
+     *
+     * @param {Array} array of keys
      * @return {Object}
      */
     function keySet(array) {
@@ -213,6 +321,11 @@ var cssPath = function(node) {
     }
 
     return Object.create(null, {
-        selector: { value: getSelector(node) }
+        selector: { value: getSelector(node, optimized) },
+        path: {value: getPath(node)}
     });
+};
+
+if (typeof exports === "function" && module && module.exports) {
+    module.exports = cssPath;
 }
