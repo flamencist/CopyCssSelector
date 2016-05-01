@@ -321,7 +321,7 @@ var cssPath = function(node, optimized) {
     }
 
     return Object.create(null, {
-        selector: { value: getSelector(node, optimized) },
+        selector: { value: getSelector(node, optimized),writable:true },
         path: {value: getPath(node)}
     });
 };
