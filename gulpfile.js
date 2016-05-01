@@ -16,7 +16,7 @@ gulp.task("crx", function () {
 });
 
 gulp.task("zip", function(){
-    return gulp.src("./src")
+    return gulp.src("./src/**")
         .pipe(zip(manifest.name + ".zip"))
         .pipe(gulp.dest('./build'));
 });

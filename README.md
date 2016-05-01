@@ -8,3 +8,8 @@
 Extension helps get selectors from elements
 
 ![css path extension](example.png)
+
+## Tests
+
+You can view the results of the CssPath test suite [in your browser!](https://rawgit.com/flamencist/cssPath/master/spec-runner.html)
+
