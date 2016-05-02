@@ -28,4 +28,4 @@ gulp.task("test", function (done) {
     }, done).start();
 });
 
-gulp.task("default", ["zip","crx"]);
+gulp.task("default", ["test","zip","crx"]);
