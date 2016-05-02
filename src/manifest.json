@@ -1,5 +1,6 @@
 {
   "name": "CssPath",
+  "short_name": "CssPath",
   "version": "0.2.0",
   "description": "Extends the Developer Tools, adding a sidebar that displays the css path of DOM element.",
   "devtools_page": "devtools.html",
@@ -8,5 +9,7 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "author":"Alexander Chermyanin (flamencist)",
+  "offline_enabled":true
 }
