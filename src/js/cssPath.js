@@ -326,7 +326,3 @@ var cssPath = function(node, optimized) {
         element:{value:node, writable:true}
     });
 };
-
-if (typeof exports === "function" && module && module.exports) {
-    module.exports = cssPath;
-}

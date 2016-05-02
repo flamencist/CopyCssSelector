@@ -2,10 +2,6 @@
 /// <reference path="fakeElementSelectors.js"/>
 /// <reference path="../src/js/cssPath.js"/>
 
-if (typeof require !== "undefined" ) {
-    cssPath = require("../src/js/cssPath.js");
-}
-
 describe("cssPath.selector", function () {
 
     describe("with native web elements", function() {
