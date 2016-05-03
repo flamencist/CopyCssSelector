@@ -1,7 +1,7 @@
 {
   "name": "Css Path",
   "short_name": "CssPath",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Extends the Developer Tools, adding a sidebar that displays the css path of DOM element.",
   "devtools_page": "devtools.html",
   "manifest_version": 2,
