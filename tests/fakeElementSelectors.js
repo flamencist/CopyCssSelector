@@ -275,7 +275,7 @@ var fakeElementSelectors = (function () {
             "</form>" +
             "</body>" +
             "</html>",
-            selector: "input"
+            selector: "input#\\02 test"
         }),
         getFakeElement({
             type: "input with many same siblings",
@@ -295,7 +295,7 @@ var fakeElementSelectors = (function () {
         }),
         getFakeElement({
             type: "input when some parent with id",
-            description: "should get main parent id, all parent tags,  element tag",
+            description: "should get main parent id if needed, all parent tags,  element tag",
             html:
             "<html>" +
             "<body>" +
@@ -303,9 +303,11 @@ var fakeElementSelectors = (function () {
             '<div>' +
             '<input type="text" class="first"/> <br\>' +
             '</div>' +
-            "</form>",
-            selector: "form#loginForm > div > input",
-            path:"html body form#loginForm div input.first"
+            "</form>" +
+            '<div>' +
+            '<input type="text" class="first"/> <br\>' +
+            '</div>',
+            selector: "form#loginForm > div > input"
         }),
         getFakeElement({
             type: "input with few class names",
@@ -314,16 +316,14 @@ var fakeElementSelectors = (function () {
             "<html>" +
             "<body>" +
             "<form id='loginForm'>" +
-            '<div>' +
             '<input type="text" class="first login"/> <br\>' +
             '<input type="text" class="first two"/> <br\>' +
             '<input type="text" class="first three"/> <br\>' +
-            '</div>' +
             "</form>" +
             "</body>" +
             "</html>",
-            selector: "form#loginForm > div > input.first.login",
-            path:"html body form#loginForm div input.first.login"
+            selector: "form#loginForm > input.first.login",
+            path:"html body form#loginForm input.first.login"
         })
     ];
 })();

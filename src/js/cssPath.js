@@ -1,7 +1,7 @@
 // The function below is executed in the context of the inspected page.
-var cssPath = function(node, optimized) {
+var cssPath = function(node, querySelectorAll, optimized) {
 
-    //#region shim for ie < 9
+    //region shim for ie < 9
     var call = Function.call;
 
     /**
@@ -77,7 +77,7 @@ var cssPath = function(node, optimized) {
                 return other;
             }
     );
-    //#endregion
+    //endregion
 
     /**
      * get full path of node
@@ -101,6 +101,7 @@ var cssPath = function(node, optimized) {
         return steps.join(" ");
     }
 
+
     /**
      * @param {Node} node
      * @param {boolean=} optimized
@@ -113,17 +114,19 @@ var cssPath = function(node, optimized) {
         var steps = [];
         var contextNode = node;
         while (contextNode) {
-            var step = cssPathStep(contextNode, !!optimized, contextNode === node, false);
+            var step = cssPathStep(contextNode, !!optimized, contextNode === node);
             if (!step)
                 break; // Error - bail out early.
             steps.push(step);
-            if (step.optimized)
-                break;
+            if (step.optimized){
+                if(isUniqueSelector(buildSelector(steps)))
+                    break;
+            }
             contextNode = contextNode.parentNode;
         }
 
-        steps.reverse();
-        return steps.join(" > ");
+        var simplifiedSteps = simplifySelector(steps);
+        return buildSelector(simplifiedSteps);
     }
 
     /**
@@ -145,16 +148,13 @@ var cssPath = function(node, optimized) {
         }
     };
 
-    var getClassName = function (node) {
-        return node.getAttribute("class") || node.className;
-    };
+
 
     /**
      * @param {!Node} node
      * @param {boolean} optimized
      * @param {boolean} isTargetNode
-     * @param {boolean} withoutNthChild Not show nth-child in selector\path
-     * @return {DomNodePathStep}
+     * @return {?}
      */
     function cssPathStep(node, optimized, isTargetNode, withoutNthChild) {
         if (node.nodeType !== 1)
@@ -169,95 +169,27 @@ var cssPath = function(node, optimized) {
                 return new DomNodePathStep(node.nodeName.toLowerCase(), true);
         }
         var nodeName = node.nodeName.toLowerCase();
-
-        if (id)
-            return new DomNodePathStep(nodeName + idSelector(id), true);
         var parent = node.parentNode;
+        var siblings = parent.children || [];
+
+        if (id && hasSiblingsWithId(siblings, id, nodeName))
+            return new DomNodePathStep(nodeName + idSelector(id), true);
+
         if (!parent || parent.nodeType === 9) // document node
             return new DomNodePathStep(nodeName, true);
 
-        /**
-         * @param {!Node} node
-         * @return {!Array.<string>}
-         */
-        function prefixedElementClassNames(node) {
-            var classAttribute = getClassName(node);
-            if (!classAttribute)
-                return [];
-
-            var classes = classAttribute.split(/\s+/g);
-            var existClasses = array_filter(classes, Boolean);
-            return array_map(existClasses, function (name) {
-                // The prefix is required to store "__proto__" in a object-based map.
-                return "$" + name;
-            });
-        }
-
-        /**
-         * @param {string} id
-         * @return {string}
-         */
-        function idSelector(id) {
-            return "#" + escapeIdentifierIfNeeded(id);
-        }
-
-        /**
-         * @param {string} ident
-         * @return {string}
-         */
-        function escapeIdentifierIfNeeded(ident) {
-            if (isCssIdentifier(ident))
-                return ident;
-            var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);
-            var lastIndex = ident.length - 1;
-            return ident.replace(/./g, function (c, i) {
-                return ((shouldEscapeFirst && i === 0) || !isCssIdentChar(c)) ? escapeAsciiChar(c, i === lastIndex) : c;
-            });
-        }
-
-        /**
-         * @param {string} c
-         * @param {boolean} isLast
-         * @return {string}
-         */
-        function escapeAsciiChar(c, isLast) {
-            return "\\" + toHexByte(c) + (isLast ? "" : " ");
-        }
-
-        /**
-         * @param {string} c
-         */
-        function toHexByte(c) {
-            var hexByte = c.charCodeAt(0).toString(16);
-            if (hexByte.length === 1)
-                hexByte = "0" + hexByte;
-            return hexByte;
-        }
-
-        /**
-         * @param {string} c
-         * @return {boolean}
-         */
-        function isCssIdentChar(c) {
-            if (/[a-zA-Z0-9_-]/.test(c))
-                return true;
-            return c.charCodeAt(0) >= 0xA0;
-        }
-
-        /**
-         * @param {string} value
-         * @return {boolean}
-         */
-        function isCssIdentifier(value) {
-            return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);
-        }
-
         var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
-        var needsClassNames = withoutNthChild;
+        var needsClassNames = false;
         var needsNthChild = false;
         var ownIndex = -1;
         var elementIndex = -1;
-        var siblings = parent.children || [];
+
+        var attributeName = node.getAttribute("name");
+        var attributeNameNeeded = false;
+        if(isSimpleInput(node, isTargetNode) && attributeName){
+            attributeNameNeeded = true;
+        }
+
         for (var i = 0;
              (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
             var sibling = siblings[i];
@@ -276,19 +208,25 @@ var cssPath = function(node, optimized) {
             needsClassNames = true;
             var ownClassNames = keySet(prefixedOwnClassNamesArray);
             var ownClassNameCount = 0;
+            var siblingAttributeName = sibling.getAttribute("name");
+            if(siblingAttributeName === attributeName){
+                attributeNameNeeded = false;
+            }
+
             for (var name in ownClassNames)
                 if (ownClassNames.hasOwnProperty(name))++ownClassNameCount;
-            if (ownClassNameCount === 0) {
+            if (ownClassNameCount === 0 && !attributeNameNeeded) {
                 needsNthChild = !withoutNthChild;
                 continue;
             }
             var siblingClassNamesArray = prefixedElementClassNames(sibling);
+
             for (var j = 0; j < siblingClassNamesArray.length; ++j) {
                 var siblingClass = siblingClassNamesArray[j];
                 if (!ownClassNames.hasOwnProperty(siblingClass))
                     continue;
                 delete ownClassNames[siblingClass];
-                if (!--ownClassNameCount) {
+                if (!--ownClassNameCount && !attributeNameNeeded) {
                     needsNthChild = !withoutNthChild;
                     break;
                 }
@@ -296,8 +234,14 @@ var cssPath = function(node, optimized) {
         }
 
         var result = nodeName;
-        if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !getClassName(node))
-            result += "[type=\"" + node.getAttribute("type") + "\"]";
+        if (isSimpleInput(node, isTargetNode) ){
+            if(attributeNameNeeded){
+                result += "[name=\"" + escapeIdentifierIfNeeded(attributeName) + "\"]";
+            }else if(node.getAttribute("type")){
+                result += "[type=\"" + node.getAttribute("type") + "\"]";
+            }
+        }
+
         if (needsNthChild) {
             result += ":nth-child(" + (ownIndex + 1) + ")";
         } else if (needsClassNames) {
@@ -306,6 +250,153 @@ var cssPath = function(node, optimized) {
         }
 
         return new DomNodePathStep(result, false);
+    }
+
+    /**
+     * simplify selector
+     * @param {Array} steps parts of selector
+     * @return {Array} steps
+     */
+    function simplifySelector(steps) {
+        var minLength = 2;
+        //if count of selectors is little that not modify selector
+        if(steps.length <= minLength) return steps;
+        var sliced = steps.slice(0,minLength);
+        while(sliced.length < steps.length){
+            var selector = buildSelector(sliced);
+            if(isUniqueSelector(selector)){
+                break;
+            }
+            sliced = steps.slice(0,sliced.length+1);
+        }
+        return sliced;
+    }
+
+    function isSimpleInput(node, isTargetNode) {
+        return isTargetNode && node.nodeName.toLowerCase() === "input" && !node.getAttribute("id") && !getClassName(node);
+    }
+
+    /**
+     * create selector string from steps array
+     * @function buildSelector
+     * @param {Array} steps Array of string
+     * @return {string} selector string
+     */
+    function buildSelector(steps) {
+        var stepsCopy = steps.slice();
+        stepsCopy.reverse();
+        return stepsCopy.join(" > ");
+    }
+
+    /**
+     * element has siblings with same id and same tag
+     * @function hasSiblingsWithId
+     * @param {Array} siblings Array of elements , parent.children
+     * @param {String} id
+     * @param {String} nodeName
+     * @return {boolean}
+     */
+    function hasSiblingsWithId(siblings, id, nodeName) {
+        return array_filter(siblings, function (el) {
+                return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
+            }).length == 1;
+    }
+
+    /**
+     * @param {!Node} node
+     * @return {!Array.<string>}
+     */
+    function prefixedElementClassNames(node) {
+        var classAttribute = getClassName(node);
+        if (!classAttribute)
+            return [];
+
+        var classes = classAttribute.split(/\s+/g);
+        var existClasses = array_filter(classes, Boolean);
+        return array_map(existClasses, function (name) {
+            // The prefix is required to store "__proto__" in a object-based map.
+            return "$" + name;
+        });
+    }
+
+    /**
+     * @param {string} id
+     * @return {string}
+     */
+    function idSelector(id) {
+        return "#" + escapeIdentifierIfNeeded(id);
+    }
+
+    /**
+     * @param {string} ident
+     * @return {string}
+     */
+    function escapeIdentifierIfNeeded(ident) {
+        if (isCssIdentifier(ident))
+            return ident;
+        var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);
+        var lastIndex = ident.length - 1;
+        return ident.replace(/./g, function (c, i) {
+            return ((shouldEscapeFirst && i === 0) || !isCssIdentChar(c)) ? escapeAsciiChar(c, i === lastIndex) : c;
+        });
+    }
+
+    /**
+     * @param {string} c
+     * @param {boolean} isLast
+     * @return {string}
+     */
+    function escapeAsciiChar(c, isLast) {
+        return "\\" + toHexByte(c) + (isLast ? "" : " ");
+    }
+
+    /**
+     * @param {string} c
+     */
+    function toHexByte(c) {
+        var hexByte = c.charCodeAt(0).toString(16);
+        if (hexByte.length === 1)
+            hexByte = "0" + hexByte;
+        return hexByte;
+    }
+
+    /**
+     * @param {string} c
+     * @return {boolean}
+     */
+    function isCssIdentChar(c) {
+        if (/[a-zA-Z0-9_-]/.test(c))
+            return true;
+        return c.charCodeAt(0) >= 0xA0;
+    }
+
+    /**
+     * @param {string} value
+     * @return {boolean}
+     */
+    function isCssIdentifier(value) {
+        return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);
+    }
+
+    /**
+     * get css class of element
+     * @param {Node} node Web element
+     * @return {string}
+     */
+    function getClassName(node) {
+        return node.getAttribute("class") || node.className;
+    }
+
+    /**
+     * detect selector is unique
+     * @param {String} selector
+     * @return {boolean} unique selector?
+     */
+    function isUniqueSelector(selector){
+        if(!querySelectorAll){
+            return true;
+        }
+        return querySelectorAll(selector).length < 2;
     }
 
     /**
@@ -319,6 +410,7 @@ var cssPath = function(node, optimized) {
             keys[array[i]] = true;
         return keys;
     }
+
 
     return Object.create(null, {
         selector: { value: getSelector(node, optimized),writable:true },
