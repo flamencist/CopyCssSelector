@@ -1,4 +1,3 @@
-//global require, __dirname
 const fs = require("fs");
 const gulp = require("gulp");
 const crx = require("gulp-crx-pack");
@@ -7,7 +6,7 @@ const Server = require("karma").Server;
 const zip = require('gulp-zip');
 const shell = require("gulp-shell");
 const src = __dirname + "\\src";
-const jeditor = require("gulp-json-editor");
+const jsonEditor = require("gulp-json-editor");
 
 gulp.task("crx", function () {
     return gulp.src("./src")
@@ -35,8 +34,8 @@ gulp.task("increment", function(){
     var numbers = manifest.version.split(".");
     numbers[3]++;
     var version = numbers.join(".");
-    return gulp.src(["./src/manifest.json","package.json"])
-        .pipe(jeditor({
+    return gulp.src(["./src/manifest.json"])
+        .pipe(jsonEditor({
             'version': version
         }))
         .pipe(gulp.dest(function(file){

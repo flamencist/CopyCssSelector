@@ -1,6 +1,6 @@
 {
   "name": "CssPath",
-  "version": "0.2.2.31",
+  "version": "0.3.0",
   "description": "usefull lib for getting selector from web element ",
   "main": "index.js",
   "scripts": {
@@ -34,6 +34,7 @@
     "karma-jasmine": "^0.3.8",
     "karma-phantomjs-launcher": "^1.0.0",
     "karma-safari-launcher": "^0.1.1",
-    "phantomjs-prebuilt": "^2.1.7"
+    "phantomjs-prebuilt": "^2.1.7",
+    "karma": "latest"
   }
 }

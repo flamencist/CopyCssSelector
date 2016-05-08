@@ -1,3 +1,10 @@
+/**
+ * get unique selector, path of node
+ * @param {HTMLElement} node html element
+ * @param {function} querySelectorAll function for search element via selector
+ * @param {boolean?} optimized get short selector
+ * @returns {Object} {selector:String,path:String,element:HTMLElement}
+ */
 var cssPath = function (node, querySelectorAll, optimized) {
 
     //region shim for ie < 9
@@ -147,7 +154,6 @@ var cssPath = function (node, querySelectorAll, optimized) {
             return this.value;
         }
     };
-
 
     /**
      * @param {HTMLElement} node
@@ -413,7 +419,6 @@ var cssPath = function (node, querySelectorAll, optimized) {
             keys[array[i]] = true;
         return keys;
     }
-
 
     return Object.create(null, {
         selector: {value: getSelector(node, optimized), writable: true},
