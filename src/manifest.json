@@ -1,15 +1,41 @@
 {
   "name": "Css Path",
   "short_name": "CssPath",
-  "version": "0.2.2",
+  "version": "0.2.2.30",
   "description": "Extends the Developer Tools, adding a sidebar that displays the css path of DOM element.",
   "devtools_page": "devtools.html",
+  "background": {
+    "page": "background.html"
+  },
   "manifest_version": 2,
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "author":"Alexander Chermyanin (flamencist)",
-  "offline_enabled":true
+  "author": "Alexander Chermyanin (flamencist)",
+  "offline_enabled": true,
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "clipboardWrite"
+  ],
+  "content_scripts": [{
+    "matches": [
+      "*://*/*"
+    ],
+    "js": [
+      "js/cssPath.js",
+      "js/content.js"
+    ]
+  }],
+  "commands": {
+    "copyCssSelector": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
+      "description": "copy css selector of current element"
+    }
+  }
 }

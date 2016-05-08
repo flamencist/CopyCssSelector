@@ -7,6 +7,8 @@ const Server = require("karma").Server;
 const zip = require('gulp-zip');
 const shell = require("gulp-shell");
 const src = __dirname + "\\src";
+const jeditor = require("gulp-json-editor");
+
 gulp.task("crx", function () {
     return gulp.src("./src")
       .pipe(crx({
@@ -23,12 +25,25 @@ gulp.task("zip", function(){
 });
 
 gulp.task("test", function (done) {
-    new Server({
+    return new Server({
         configFile: __dirname + "/karma.conf.js",
         singleRun: true
     }, done).start();
 });
 
+gulp.task("increment", function(){
+    var numbers = manifest.version.split(".");
+    numbers[3]++;
+    var version = numbers.join(".");
+    return gulp.src(["./src/manifest.json","package.json"])
+        .pipe(jeditor({
+            'version': version
+        }))
+        .pipe(gulp.dest(function(file){
+            return file.base;
+        }));
+});
+
 gulp.task("chrome", shell.task(['"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" --load-extension='+ src]));
 
-gulp.task("default", ["test","zip","crx"]);
+gulp.task("default", ["test","increment","zip","crx"]);
