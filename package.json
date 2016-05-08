@@ -1,6 +1,6 @@
 {
   "name": "CssPath",
-  "version": "0.2.2.30",
+  "version": "0.2.2.31",
   "description": "usefull lib for getting selector from web element ",
   "main": "index.js",
   "scripts": {

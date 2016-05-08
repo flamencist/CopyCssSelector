@@ -1,7 +1,7 @@
-// The function below is executed in the context of the inspected page.
-var cssPath = function(node, querySelectorAll, optimized) {
+var cssPath = function (node, querySelectorAll, optimized) {
 
     //region shim for ie < 9
+    //noinspection JSUnresolvedVariable
     var call = Function.call;
 
     /**
@@ -20,7 +20,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
      * @param f {Function} function
      * @returns {boolean}
      */
-    var isFuncNative = function(f) {
+    var isFuncNative = function (f) {
         return !!f && (typeof f).toLowerCase() === "function"
             && (f === Function.prototype
             || /^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*\{\s*\[native code\]\s*\}\s*$/i.test(String(f)));
@@ -81,10 +81,10 @@ var cssPath = function(node, querySelectorAll, optimized) {
 
     /**
      * get full path of node
-     * @param {Node} node
+     * @param {HTMLElement} node
      * @return {string}
      */
-    function getPath(node){
+    function getPath(node) {
         if (!node || node.nodeType !== 1)
             return "";
         var steps = [];
@@ -103,8 +103,8 @@ var cssPath = function(node, querySelectorAll, optimized) {
 
 
     /**
-     * @param {Node} node
-     * @param {boolean=} optimized
+     * @param {HTMLElement} node
+     * @param {boolean?} optimized
      * @return {string}
      */
     function getSelector(node, optimized) {
@@ -114,12 +114,12 @@ var cssPath = function(node, querySelectorAll, optimized) {
         var steps = [];
         var contextNode = node;
         while (contextNode) {
-            var step = cssPathStep(contextNode, !!optimized, contextNode === node);
+            var step = cssPathStep(contextNode, !!optimized, contextNode === node, false);
             if (!step)
                 break; // Error - bail out early.
             steps.push(step);
-            if (step.optimized){
-                if(isUniqueSelector(buildSelector(steps)))
+            if (step.optimized) {
+                if (isUniqueSelector(buildSelector(steps)))
                     break;
             }
             contextNode = contextNode.parentNode;
@@ -149,12 +149,12 @@ var cssPath = function(node, querySelectorAll, optimized) {
     };
 
 
-
     /**
-     * @param {!Node} node
-     * @param {boolean} optimized
-     * @param {boolean} isTargetNode
-     * @return {?}
+     * @param {HTMLElement} node
+     * @param {boolean?} optimized
+     * @param {boolean?} isTargetNode
+     * @param {boolean?} withoutNthChild
+     * @return {DomNodePathStep} selector for current node
      */
     function cssPathStep(node, optimized, isTargetNode, withoutNthChild) {
         if (node.nodeType !== 1)
@@ -186,7 +186,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
 
         var attributeName = node.getAttribute("name");
         var attributeNameNeeded = false;
-        if(isSimpleInput(node, isTargetNode) && attributeName){
+        if (isSimpleInput(node, isTargetNode) && attributeName) {
             attributeNameNeeded = true;
         }
 
@@ -209,7 +209,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
             var ownClassNames = keySet(prefixedOwnClassNamesArray);
             var ownClassNameCount = 0;
             var siblingAttributeName = sibling.getAttribute("name");
-            if(siblingAttributeName === attributeName){
+            if (siblingAttributeName === attributeName) {
                 attributeNameNeeded = false;
             }
 
@@ -234,19 +234,22 @@ var cssPath = function(node, querySelectorAll, optimized) {
         }
 
         var result = nodeName;
-        if (isSimpleInput(node, isTargetNode) ){
-            if(attributeNameNeeded){
+        if (isSimpleInput(node, isTargetNode)) {
+            if (attributeNameNeeded) {
                 result += "[name=\"" + escapeIdentifierIfNeeded(attributeName) + "\"]";
-            }else if(node.getAttribute("type")){
-                result += "[type=\"" + node.getAttribute("type") + "\"]";
+            } else {
+                if (node.getAttribute("type")) {
+                    result += "[type=\"" + node.getAttribute("type") + "\"]";
+                }
             }
         }
 
         if (needsNthChild) {
             result += ":nth-child(" + (ownIndex + 1) + ")";
         } else if (needsClassNames) {
-            for (var prefixedName in keySet(prefixedOwnClassNamesArray))
+            for (var prefixedName in keySet(prefixedOwnClassNamesArray)) {
                 result += "." + escapeIdentifierIfNeeded(prefixedName.substr(1));
+            }
         }
 
         return new DomNodePathStep(result, false);
@@ -260,14 +263,14 @@ var cssPath = function(node, querySelectorAll, optimized) {
     function simplifySelector(steps) {
         var minLength = 2;
         //if count of selectors is little that not modify selector
-        if(steps.length <= minLength) return steps;
-        var sliced = steps.slice(0,minLength);
-        while(sliced.length < steps.length){
+        if (steps.length <= minLength) return steps;
+        var sliced = steps.slice(0, minLength);
+        while (sliced.length < steps.length) {
             var selector = buildSelector(sliced);
-            if(isUniqueSelector(selector)){
+            if (isUniqueSelector(selector)) {
                 break;
             }
-            sliced = steps.slice(0,sliced.length+1);
+            sliced = steps.slice(0, sliced.length + 1);
         }
         return sliced;
     }
@@ -303,7 +306,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
     }
 
     /**
-     * @param {!Node} node
+     * @param {HTMLElement} node
      * @return {!Array.<string>}
      */
     function prefixedElementClassNames(node) {
@@ -328,7 +331,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
     }
 
     /**
-     * @param {string} ident
+     * @param {string} ident identifier
      * @return {string}
      */
     function escapeIdentifierIfNeeded(ident) {
@@ -351,7 +354,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
     }
 
     /**
-     * @param {string} c
+     * @param {string} c character
      */
     function toHexByte(c) {
         var hexByte = c.charCodeAt(0).toString(16);
@@ -361,7 +364,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
     }
 
     /**
-     * @param {string} c
+     * @param {string} c character
      * @return {boolean}
      */
     function isCssIdentChar(c) {
@@ -380,7 +383,7 @@ var cssPath = function(node, querySelectorAll, optimized) {
 
     /**
      * get css class of element
-     * @param {Node} node Web element
+     * @param {HTMLElement} node Web element
      * @return {string}
      */
     function getClassName(node) {
@@ -390,10 +393,10 @@ var cssPath = function(node, querySelectorAll, optimized) {
     /**
      * detect selector is unique
      * @param {String} selector
-     * @return {boolean} unique selector?
+     * @return {boolean} is unique selector
      */
-    function isUniqueSelector(selector){
-        if(!querySelectorAll){
+    function isUniqueSelector(selector) {
+        if (!querySelectorAll) {
             return true;
         }
         return querySelectorAll(selector).length < 2;
@@ -413,8 +416,8 @@ var cssPath = function(node, querySelectorAll, optimized) {
 
 
     return Object.create(null, {
-        selector: { value: getSelector(node, optimized),writable:true },
+        selector: {value: getSelector(node, optimized), writable: true},
         path: {value: getPath(node)},
-        element:{value:node, writable:true}
+        element: {value: node, writable: true}
     });
 };
