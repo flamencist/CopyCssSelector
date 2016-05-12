@@ -32,8 +32,6 @@
 
         , _Array_slice_ = Array.prototype.slice
 
-    /** @const */
-        , _Function_call_ = Function.prototype.call
 
     /** Use native or unsafe but fast 'bind' for service and performance needs
      * @const
@@ -55,7 +53,7 @@
             return function () {
                 return _Function_apply_.call(__method, object, arguments);
             };
-        }
+        };
 
     function prepareTextForIFrame(text) {
         return text

@@ -154,20 +154,6 @@ var fakeElementSelectors = (function () {
             path:"html body form#login-form button"
         }),
         getFakeElement({
-            type: "element with parent with id",
-            description: "should get parent tag, parent id, element tag ",
-            html:
-            "<html>" +
-            "<body>" +
-            "<form id='login-form'>" +
-            '<button>Login</button>' +
-            "</form>" +
-            "</body>" +
-            "</html>",
-            selector: "form#login-form > button",
-            path:"html body form#login-form button"
-        }),
-        getFakeElement({
             type: "element with sublings with same tags",
             description: "should get parent tag, element tag, element number ",
             html:
@@ -183,19 +169,20 @@ var fakeElementSelectors = (function () {
             selector: "form > input[type=\"text\"]:nth-child(1)",
             path:"html body form input[type=\"text\"]"
         }),
-        /*         getFakeElement({
-         type: "input with name",
-         description: "should get parent tag, element tag, element name ",
-         html:
-         "<form>" +
-         '<input type="text" name="first"  /> <br\>' +
-         '<input type="text" name="second" /> <br\>' +
-         '<input type="text" third="third" /> <br\>' +
-         "</form>"+
-         "</body>" +
-         "</html>",
-         selector: "form > input[name=\"first\"]"
-         }),*/
+        getFakeElement({
+            type: "input with name",
+            description: "should get parent tag, element tag, element name ",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form>" +
+            '<input type="text" name="first"  /> <br\>' +
+            "</form>"+
+            '<input type="text" name="first"  /> <br\>' +
+            "</body>" +
+            "</html>",
+            selector: "form > input[name=\"first\"]"
+        }),
         getFakeElement({
             type: "input with id on Russian language",
             description: "should get input with id",
@@ -307,7 +294,7 @@ var fakeElementSelectors = (function () {
             '<div>' +
             '<input type="text" class="first"/> <br\>' +
             '</div>',
-            selector: "form#loginForm > div > input"
+            selector: "form#loginForm input"
         }),
         getFakeElement({
             type: "input with few class names",
@@ -324,7 +311,253 @@ var fakeElementSelectors = (function () {
             "</html>",
             selector: "form#loginForm > input.first.login",
             path:"html body form#loginForm input.first.login"
+        }),
+        getFakeElement({
+            type: "input with type tel",
+            description: "should get parent tag, element tag, element type",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form>" +
+            '<input type="tel"/><br/>' +
+            "</form>" +
+            "</body>" +
+            "</html>"
+            ,
+            selector: 'form > input[type="tel"]'
+        }),
+        getFakeElement({
+            type: "input with type number",
+            description: "should get parent tag, element tag, element type",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form>" +
+            '<input type="number"/><br/>' +
+            "</form>" +
+            "</body>" +
+            "</html>"
+            ,
+            selector: 'form > input[type="number"]'
+        }),
+        getFakeElement({
+            type: "input with unique name",
+            description: "should get parent tag, element tag, element name ",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form>" +
+            '<input type="text" name="first"  /> <br\>' +
+            '<input type="text" name="second" /> <br\>' +
+            '<input type="text" name="third" /> <br\>' +
+            "</form>"+
+            "</body>" +
+            "</html>",
+            selector: "input[name=\"first\"]"
+        }),
+        getFakeElement({
+            type: "inputs with names",
+            description: "should get parent tag, element tag, element name ",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form>" +
+            '<input type="text" name="first"  /> <br\>' +
+            '<input type="text" name="first" /> <br\>' +
+            "</form>" +
+            "</body>" +
+            "</html>",
+            selector: "form > input[type=\"text\"]:nth-child(1)"
+        }),
+        getFakeElement({
+            type: "inputs with same unique id",
+            description: "should get main parent id, element tag, element id",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form id='loginForm'>" +
+            '<input type="text" id="first"/> <br\>' +
+            "</form>" +
+            '<input type="text" id="first"/> <br\>' +
+            "</body>" +
+            "</html>",
+            selector: "form#loginForm > input#first"
+        }),
+        getFakeElement({
+            type: "elements with same id, but with different tags",
+            description: "should get element tag, element id",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form id='loginForm'>" +
+            '<input type="text" id="first"/> <br\>' +
+            '<img  id="first"/> <br\>' +
+            "</form>" +
+            "</body>" +
+            "</html>",
+            selector: "input#first"
+        }),
+        getFakeElement({
+            type: "inputs with same id, and same path",
+            description: "should get main parent id, element tag, element id",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form id='loginForm'>" +
+            '<input type="text" id="first"/> <br\>' +
+            '<input type="text" id="first"/> <br\>' +
+            "</form>" +
+            "</body>" +
+            "</html>",
+            selector: "form#loginForm > input:nth-child(1)"
+        }),
+        getFakeElement({
+            type: "input with type text in big DOM",
+            description: "should get simplified selector",
+            html:
+            "<html>" +
+            "<body>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            "<form>" +
+            '<input type="text"/><br/>' +
+            "</form>" +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</body>" +
+            "</html>",
+            selector: 'form > input[type="text"]'
+        }),
+        getFakeElement({
+            type: "input with type text in big DOM with parent form without attributes",
+            description: "should get main parent name, element tag, element type",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form>" +
+            "<div>" +
+            "<div>" +
+            '<input type="text"/> <br\>' +
+            "</div>" +
+            "</div>" +
+            "</form>" +
+            "<div>" +
+            "<form>" +
+            "<div>" +
+            "<div>" +
+            '<input type="text"/> <br\>' +
+            "</div>" +
+            "</div>" +
+            "</form>" +
+            "</div>" +
+            "</body>" +
+            "</html>",
+            selector: "form > div > div > input[type=\"text\"]"
+        }),
+        getFakeElement({
+            type: "input with type text in big form with id with nesting div containers",
+            description: "should get main parent id, element tag, element id",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form id='loginForm'>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            '<input type="text"/> <br\>' +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</form>" +
+            "</body>" +
+            "</html>",
+            selector: "form#loginForm input[type=\"text\"]"
+        }),
+        getFakeElement({
+            type: "input with type text in big DOM with parent id and nesting div containers",
+            description: "should get main parent id, element tag, element id",
+            html:
+            "<html>" +
+            "<body>" +
+            "<div id='loginForm'>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            '<input type="text"/> <br\>' +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</body>" +
+            "</html>",
+            selector: "div#loginForm input[type=\"text\"]"
+        }),
+        getFakeElement({
+            type: "input with type text in big DOM with parent id",
+            description: "should get main parent id, element tag",
+            html:
+            "<html>" +
+            "<body>" +
+            "<div id='loginForm'>" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            '<input type="text"/> <br\>' +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "<div>" +
+            '<input type="text"/> <br\>' +
+            "</div>" +
+            "</div>" +
+            "</body>" +
+            "</html>",
+            selector: "div#loginForm div > div > input[type=\"text\"]"
+        }),
+        getFakeElement({
+            type: "input with type text in big DOM with parent form with name",
+            description: "should get main parent name, element tag, element type",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form name=\"loginForm\">" +
+            "<div>" +
+            "<div>" +
+            "<div>" +
+            '<input type="text"/> <br\>' +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</form>" +
+            "</body>" +
+            "</html>",
+            selector: "form[name=\"loginForm\"] input[type=\"text\"]"
+        }),
+        getFakeElement({
+            type: "empty DOM with body,head only",
+            description: "should get html, body",
+            html:
+            "<html>" +
+            "<head>" +
+            "</head>"+
+            "<body>" +
+            "</body>" +
+            "</html>",
+            selector: "html > body"
         })
+
     ];
 })();
 

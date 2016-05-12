@@ -1,7 +1,7 @@
 /**
  * get unique selector, path of node
  * @param {HTMLElement} node html element
- * @param {function} querySelectorAll function for search element via selector
+ * @param {function?} querySelectorAll function for search element via selector
  * @param {boolean?} optimized get short selector
  * @returns {Object} {selector:String,path:String,element:HTMLElement}
  */
@@ -178,7 +178,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
         var parent = node.parentNode;
         var siblings = parent.children || [];
 
-        if (id && hasSiblingsWithId(siblings, id, nodeName))
+        if (id && !hasSiblingsWithId(siblings, id, nodeName))
             return new DomNodePathStep(nodeName + idSelector(id), true);
 
         if (!parent || parent.nodeType === 9) // document node
@@ -191,10 +191,8 @@ var cssPath = function (node, querySelectorAll, optimized) {
         var elementIndex = -1;
 
         var attributeName = node.getAttribute("name");
-        var attributeNameNeeded = false;
-        if (isSimpleInput(node, isTargetNode) && attributeName) {
-            attributeNameNeeded = true;
-        }
+        var isSimpleFormElement = isSimpleInput(node, isTargetNode) || isFormWithoutId(node);
+        var attributeNameNeeded = !!(isSimpleFormElement && attributeName);
 
         for (var i = 0;
              (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
@@ -240,14 +238,12 @@ var cssPath = function (node, querySelectorAll, optimized) {
         }
 
         var result = nodeName;
-        if (isSimpleInput(node, isTargetNode)) {
-            if (attributeNameNeeded) {
-                result += "[name=\"" + escapeIdentifierIfNeeded(attributeName) + "\"]";
-            } else {
-                if (node.getAttribute("type")) {
-                    result += "[type=\"" + node.getAttribute("type") + "\"]";
-                }
-            }
+        if (isSimpleFormElement && attributeNameNeeded) {
+            result += "[name=\"" + escapeIdentifierIfNeeded(attributeName) + "\"]";
+            return new DomNodePathStep(result, true);
+
+        } else if (isSimpleFormElement && node.getAttribute("type")) {
+            result += "[type=\"" + node.getAttribute("type") + "\"]";
         }
 
         if (needsNthChild) {
@@ -263,13 +259,95 @@ var cssPath = function (node, querySelectorAll, optimized) {
 
     /**
      * simplify selector
+     * @example
+     * ```
+     *  <div>
+     *      <div>
+     *          <form>
+     *              <input type="text"/>
+     *          </form>
+     *      </div>
+     *  </div>
+     *
+     * var steps = [new DomNodePathStep("input[type='text']"), new DomNodePathStep("form"), new DomNodePathStep("div"), new DomNodePathStep("div")];
+     * var simplified = simplifySelector(steps); // ["input[type='text']", "form"]
+     * ```
+     *
+     * @example
+     * ```
+     *  <div id="loginForm">
+     *      <div>
+     *          <div>
+     *              <input type="text"/>
+     *          </div>
+     *      </div>
+     *  </div>
+     *
+     * var steps = [new DomNodePathStep("input[type='text']"), new DomNodePathStep("div"), new DomNodePathStep("div"), new DomNodePathStep("div#loginForm")];
+     * var simplified = simplifySelector(steps); // [["input[type='text']"],["div#loginForm"]]
+     * ```
+     *
+     * @method simplifySelector
      * @param {Array} steps parts of selector
-     * @return {Array} steps
+     * @return {Array} steps array of steps or array Arrays of steps
      */
     function simplifySelector(steps) {
         var minLength = 2;
-        //if count of selectors is little that not modify selector
+        //if count of selectors is little, that not modify selector
         if (steps.length <= minLength) return steps;
+
+        var stepsCopy = steps.slice();
+        removeHtmlBodySteps(stepsCopy);
+
+        var lastStep = stepsCopy[stepsCopy.length - 1];
+        var parentWithId = lastStep.toString().indexOf("#") >= 0;
+        var parentWithName = lastStep.toString().indexOf("name=") >= 0;
+
+        if (parentWithId || parentWithName) {
+            return simplifyStepsWithParent(stepsCopy);
+        } else {
+            return regularSimplifySteps(stepsCopy, minLength);
+        }
+    }
+
+    /**
+     * remove Html, Body Steps
+     * @param steps
+     */
+    function removeHtmlBodySteps(steps) {
+        while (steps[steps.length - 1].toString() === "html" || steps[steps.length - 1].toString() === "body") {
+            steps.pop();
+        }
+    }
+
+    /**
+     *  simplifyStepsWithParent
+     * @function simplifyStepsWithParent
+     * @param steps
+     * @return {Array} array of arrays
+     */
+    function simplifyStepsWithParent(steps) {
+        var parentStep = steps.slice(-1);
+        var sliced = steps.slice(0, 1);
+        while (sliced.length < (steps.length - 1)) {
+            var selector = buildSelector([sliced, parentStep]);
+            if (isUniqueSelector(selector)) {
+                break;
+            }
+            sliced = steps.slice(0, sliced.length + 1);
+        }
+        return [sliced, parentStep];
+    }
+
+    /**
+     * regularSimplifySteps
+     * @method regularSimplifySteps
+     * @param {Array} steps
+     * @param {int=2} minLength
+     * @return {Array} array of steps
+     */
+    function regularSimplifySteps(steps, minLength) {
+        minLength = minLength || 2;
         var sliced = steps.slice(0, minLength);
         while (sliced.length < steps.length) {
             var selector = buildSelector(sliced);
@@ -281,20 +359,66 @@ var cssPath = function (node, querySelectorAll, optimized) {
         return sliced;
     }
 
+    /**
+     * target is simple input without classes,id
+     * @function isSimpleInput
+     * @param node
+     * @param isTargetNode
+     * @return {boolean}
+     */
     function isSimpleInput(node, isTargetNode) {
         return isTargetNode && node.nodeName.toLowerCase() === "input" && !node.getAttribute("id") && !getClassName(node);
     }
 
+    function isFormWithoutId(node) {
+        return node.nodeName.toLowerCase() === "form" && !node.getAttribute("id");
+    }
+
+
     /**
      * create selector string from steps array
      * @function buildSelector
-     * @param {Array} steps Array of string
+     * @example
+     * with single array of steps
+     * ```
+     * <form id="loginForm">
+     *    <input type='text'/>
+     * </form>
+     *
+     *  var steps = [new DomNodePathStep("input[type='text']"),new DomNodePathStep("form#loginForm")];
+     *  var selector = buildSelector(steps); // "form#loginForm > input[type='text']"
+     * ```
+     *
+     * @example
+     * with multiple array of steps
+     * ```
+     * <div id="loginForm">
+     *    <div>
+     *       <div>
+     *          <input type='text'/>
+     *      </div>
+     *   </div>
+     *  </div>
+     *
+     * var steps = [[new DomNodePathStep("input[type='text']")],[new DomNodePathStep("div#loginForm")]];
+     * var selector = buildSelector(steps); // "div#loginForm input[type='text']"
+     * ```
+     *
+     * @param {Array} steps Array of string or array of Array of string
      * @return {string} selector string
      */
     function buildSelector(steps) {
         var stepsCopy = steps.slice();
         stepsCopy.reverse();
-        return stepsCopy.join(" > ");
+        //check steps is regular array of steps
+        if (typeof(stepsCopy[0].value) !== "undefined") {
+            return stepsCopy.join(" > ");
+        } else {
+            return array_reduce(stepsCopy, function (previosValue, currentValue) {
+                var selector = buildSelector(currentValue);
+                return previosValue ? previosValue + " " + selector : selector;
+            }, "");
+        }
     }
 
     /**
@@ -308,10 +432,11 @@ var cssPath = function (node, querySelectorAll, optimized) {
     function hasSiblingsWithId(siblings, id, nodeName) {
         return array_filter(siblings, function (el) {
                 return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
-            }).length == 1;
+            }).length != 1;
     }
 
     /**
+     * @function prefixedElementClassNames
      * @param {HTMLElement} node
      * @return {!Array.<string>}
      */
@@ -329,6 +454,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
+     * @function idSelector
      * @param {string} id
      * @return {string}
      */
@@ -337,7 +463,8 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
-     * @param {string} ident identifier
+     * @function escapeIdentifierIfNeeded
+     * @param {string} ident
      * @return {string}
      */
     function escapeIdentifierIfNeeded(ident) {
@@ -351,6 +478,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
+     * @function escapeAsciiChar
      * @param {string} c
      * @param {boolean} isLast
      * @return {string}
@@ -360,7 +488,8 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
-     * @param {string} c character
+     * @function toHexByte
+     * @param {string} c
      */
     function toHexByte(c) {
         var hexByte = c.charCodeAt(0).toString(16);
@@ -370,7 +499,8 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
-     * @param {string} c character
+     * @function isCssIdentChar
+     * @param {string} c
      * @return {boolean}
      */
     function isCssIdentChar(c) {
@@ -380,6 +510,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
+     * @function isCssIdentifier
      * @param {string} value
      * @return {boolean}
      */
@@ -388,6 +519,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
+     * @function getClassName
      * get css class of element
      * @param {HTMLElement} node Web element
      * @return {string}
@@ -397,9 +529,10 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
+     * @function isUniqueSelector
      * detect selector is unique
      * @param {String} selector
-     * @return {boolean} is unique selector
+     * @return {boolean} unique selector?
      */
     function isUniqueSelector(selector) {
         if (!querySelectorAll) {
@@ -409,7 +542,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
     }
 
     /**
-     *
+     * @function keySet
      * @param {Array} array of keys
      * @return {Object}
      */
