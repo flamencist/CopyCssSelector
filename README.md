@@ -1,4 +1,4 @@
-# CssPath
+# CopyCssSelector
 
 [![Built with Gulp](http://img.shields.io/badge/built%20with-gulp.js-red.svg)](http://gulpjs.com/)
 [![devDependency Status](https://david-dm.org/flamencist/CssPath/dev-status.svg)](https://david-dm.org/flamencist/CssPath#info=devDependencie)
@@ -7,9 +7,10 @@
 
 Extension helps get selectors from elements
 
-![css path extension](example.png)
+![copy css selector extension](example_2.png)
+![copy css selector extension](example_3.png)
 
 ## Tests
 
-You can view the results of the CssPath test suite [in your browser!](https://rawgit.com/flamencist/cssPath/master/spec-runner.html)
+You can view the results of the Copy Css Selector test suite [in your browser!](https://rawgit.com/flamencist/cssPath/master/spec-runner.html)
 
