@@ -1,4 +1,4 @@
-var watchSelector = function(obj,$$,inspect){
+var watchSelector = function(obj,$$,inspect){ //eslint-disable-line no-unused-vars
     var oldValue = obj.selector;
     var digest = function(){
         setTimeout(function(){

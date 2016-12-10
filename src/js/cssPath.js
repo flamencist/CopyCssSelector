@@ -1,3 +1,4 @@
+/*global */
 /**
  * get unique selector, path of node
  * @param {HTMLElement} node html element
@@ -5,7 +6,7 @@
  * @param {boolean?} optimized get short selector
  * @returns {Object} {selector:String,path:String,element:HTMLElement}
  */
-var cssPath = function (node, querySelectorAll, optimized) {
+var cssPath = function (node, querySelectorAll, optimized) { //eslint-disable-line no-unused-vars
 
     //region shim for ie < 9
     //noinspection JSUnresolvedVariable
@@ -78,28 +79,33 @@ var cssPath = function (node, querySelectorAll, optimized) {
         Array.prototype.filter && isFuncNative(Array.prototype.filter) ? Array.prototype.filter :
             function (predicate, that) {
                 var other = [], v;
-                for (var i = 0, n = this.length; i < n; i++)
-                    if (i in this && predicate.call(that, v = this[i], i, this))
+                for (var i = 0, n = this.length; i < n; i++) {
+                    if (i in this && predicate.call(that, v = this[i], i, this)) {
                         other.push(v);
+                    }
+                }
                 return other;
             }
     );
     //endregion
 
     /**
-     * get full path of node
+     * @description get full path of node
+     * @function getPath
      * @param {HTMLElement} node
      * @return {string}
      */
     function getPath(node) {
-        if (!node || node.nodeType !== 1)
+        if (!node || node.nodeType !== 1) {
             return "";
+        }
         var steps = [];
         var contextNode = node;
         while (contextNode) {
             var step = cssPathStep(contextNode, false, contextNode === node, true);
-            if (!step)
-                break; // Error - bail out early.
+            if (!step) {
+                break;
+            } // Error - bail out early.
             steps.push(step);
             contextNode = contextNode.parentNode;
         }
@@ -115,19 +121,22 @@ var cssPath = function (node, querySelectorAll, optimized) {
      * @return {string}
      */
     function getSelector(node, optimized) {
-        if (!node || node.nodeType !== 1)
+        if (!node || node.nodeType !== 1) {
             return "";
+        }
 
         var steps = [];
         var contextNode = node;
         while (contextNode) {
             var step = cssPathStep(contextNode, !!optimized, contextNode === node, false);
-            if (!step)
+            if (!step) {
                 break; // Error - bail out early.
+            }
             steps.push(step);
             if (step.optimized) {
-                if (isUniqueSelector(buildSelector(steps)))
+                if (isUniqueSelector(buildSelector(steps))) {
                     break;
+                }
             }
             contextNode = contextNode.parentNode;
         }
@@ -163,26 +172,32 @@ var cssPath = function (node, querySelectorAll, optimized) {
      * @return {DomNodePathStep} selector for current node
      */
     function cssPathStep(node, optimized, isTargetNode, withoutNthChild) {
-        if (node.nodeType !== 1)
+        if (node.nodeType !== 1) {
             return null;
+        }
 
         var id = node.getAttribute("id");
         if (optimized) {
-            if (id)
+            if (id) {
                 return new DomNodePathStep(idSelector(id), true);
+            }
             var nodeNameLower = node.nodeName.toLowerCase();
-            if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html")
+            if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html") {
                 return new DomNodePathStep(node.nodeName.toLowerCase(), true);
+            }
         }
         var nodeName = node.nodeName.toLowerCase();
         var parent = node.parentNode;
         var siblings = parent.children || [];
 
-        if (id && !hasSiblingsWithId(siblings, id, nodeName))
+        if (id && !hasSiblingsWithId(siblings, id, nodeName)) {
             return new DomNodePathStep(nodeName + idSelector(id), true);
+        }
 
         if (!parent || parent.nodeType === 9) // document node
+        {
             return new DomNodePathStep(nodeName, true);
+        }
 
         var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
         var needsClassNames = false;
@@ -197,17 +212,20 @@ var cssPath = function (node, querySelectorAll, optimized) {
         for (var i = 0;
              (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
             var sibling = siblings[i];
-            if (sibling.nodeType !== 1)
+            if (sibling.nodeType !== 1) {
                 continue;
+            }
             elementIndex += 1;
             if (sibling === node) {
                 ownIndex = elementIndex;
                 continue;
             }
-            if (needsNthChild)
+            if (needsNthChild) {
                 continue;
-            if (sibling.nodeName.toLowerCase() !== nodeName)
+            }
+            if (sibling.nodeName.toLowerCase() !== nodeName) {
                 continue;
+            }
 
             needsClassNames = true;
             var ownClassNames = keySet(prefixedOwnClassNamesArray);
@@ -217,8 +235,11 @@ var cssPath = function (node, querySelectorAll, optimized) {
                 attributeNameNeeded = false;
             }
 
-            for (var name in ownClassNames)
-                if (ownClassNames.hasOwnProperty(name))++ownClassNameCount;
+            for (var name in ownClassNames) {
+                if (ownClassNames.hasOwnProperty(name)) {
+                    ++ownClassNameCount;
+                }
+            }
             if (ownClassNameCount === 0 && !attributeNameNeeded) {
                 needsNthChild = !withoutNthChild;
                 continue;
@@ -227,8 +248,9 @@ var cssPath = function (node, querySelectorAll, optimized) {
 
             for (var j = 0; j < siblingClassNamesArray.length; ++j) {
                 var siblingClass = siblingClassNamesArray[j];
-                if (!ownClassNames.hasOwnProperty(siblingClass))
+                if (!ownClassNames.hasOwnProperty(siblingClass)) {
                     continue;
+                }
                 delete ownClassNames[siblingClass];
                 if (!--ownClassNameCount && !attributeNameNeeded) {
                     needsNthChild = !withoutNthChild;
@@ -249,7 +271,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
         if (needsNthChild) {
             result += ":nth-child(" + (ownIndex + 1) + ")";
         } else if (needsClassNames) {
-            for (var prefixedName in keySet(prefixedOwnClassNamesArray)) {
+            for (var prefixedName in keySet(prefixedOwnClassNamesArray)) { //eslint-disable-line guard-for-in
                 result += "." + escapeIdentifierIfNeeded(prefixedName.substr(1));
             }
         }
@@ -294,7 +316,9 @@ var cssPath = function (node, querySelectorAll, optimized) {
     function simplifySelector(steps) {
         var minLength = 2;
         //if count of selectors is little, that not modify selector
-        if (steps.length <= minLength) return steps;
+        if (steps.length <= minLength) {
+            return steps;
+        }
 
         var stepsCopy = steps.slice();
         removeHtmlBodySteps(stepsCopy);
@@ -432,7 +456,7 @@ var cssPath = function (node, querySelectorAll, optimized) {
     function hasSiblingsWithId(siblings, id, nodeName) {
         return array_filter(siblings, function (el) {
                 return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
-            }).length != 1;
+            }).length !== 1;
     }
 
     /**
@@ -442,8 +466,9 @@ var cssPath = function (node, querySelectorAll, optimized) {
      */
     function prefixedElementClassNames(node) {
         var classAttribute = getClassName(node);
-        if (!classAttribute)
+        if (!classAttribute) {
             return [];
+        }
 
         var classes = classAttribute.split(/\s+/g);
         var existClasses = array_filter(classes, Boolean);
@@ -468,8 +493,9 @@ var cssPath = function (node, querySelectorAll, optimized) {
      * @return {string}
      */
     function escapeIdentifierIfNeeded(ident) {
-        if (isCssIdentifier(ident))
+        if (isCssIdentifier(ident)) {
             return ident;
+        }
         var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);
         var lastIndex = ident.length - 1;
         return ident.replace(/./g, function (c, i) {
@@ -493,8 +519,9 @@ var cssPath = function (node, querySelectorAll, optimized) {
      */
     function toHexByte(c) {
         var hexByte = c.charCodeAt(0).toString(16);
-        if (hexByte.length === 1)
+        if (hexByte.length === 1) {
             hexByte = "0" + hexByte;
+        }
         return hexByte;
     }
 
@@ -504,8 +531,9 @@ var cssPath = function (node, querySelectorAll, optimized) {
      * @return {boolean}
      */
     function isCssIdentChar(c) {
-        if (/[a-zA-Z0-9_-]/.test(c))
+        if (/[a-zA-Z0-9_-]/.test(c)) {
             return true;
+        }
         return c.charCodeAt(0) >= 0xA0;
     }
 
@@ -548,8 +576,9 @@ var cssPath = function (node, querySelectorAll, optimized) {
      */
     function keySet(array) {
         var keys = {};
-        for (var i = 0; i < array.length; ++i)
+        for (var i = 0; i < array.length; ++i) {
             keys[array[i]] = true;
+        }
         return keys;
     }
 

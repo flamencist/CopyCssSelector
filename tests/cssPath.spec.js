@@ -1,7 +1,7 @@
 /// <reference path="domParser.js"/>
 /// <reference path="fakeElementSelectors.js"/>
 /// <reference path="../src/js/cssPath.js"/>
-
+/* global cssPath, fakeElementSelectors */
 describe("cssPath.selector", function () {
 
     describe("with native web elements", function () {
@@ -17,7 +17,7 @@ describe("cssPath.selector", function () {
                 it("get selector of " + fakeElementSelector.type, (function (fakeElementSelector) {
                     return function () {
                         selectorTest(fakeElementSelector);
-                    }
+                    };
                 }(fakeElementSelector)));
             }
         }
@@ -55,7 +55,7 @@ describe("cssPath.selector", function () {
         it("return id only if optmized enable", function () {
             var node = {
                 nodeType: 1, getAttribute: function () {
-                    return "login"
+                    return "login";
                 }, nodeName: "input", parentNode: {nodeType: 9}
             };
             var result = cssPath(node, querySelectorAllMock, true);
@@ -89,7 +89,7 @@ describe("cssPath.selector", function () {
             var reduce = Array.prototype.reduce;
             var filter = Array.prototype.filter;
 
-
+            /* eslint-disable no-extend-native*/
             Array.prototype.map = null;
             Array.prototype.reduce = null;
             Array.prototype.filter = null;
@@ -99,6 +99,7 @@ describe("cssPath.selector", function () {
             Array.prototype.map = map;
             Array.prototype.reduce = reduce;
             Array.prototype.filter = filter;
+            /*eslint-enable no-extend-native*/
 
             expect(result.selector).toContain("input.test.test3");
 
@@ -123,12 +124,12 @@ describe("cssPath.selector", function () {
                 nodeType: 1,
                 parentNode: {
                     nodeName: "form", children: [{
-                        nodeType: 1, nodeName: "input", getAttribute: function (id) {
+                        nodeType: 1, nodeName: "input", getAttribute: function () {
                             return "id";
                         }
                     }]
                 },
-                getAttribute: function (id) {
+                getAttribute: function () {
                     return "id";
                 },
                 nodeName: "input"
@@ -151,12 +152,12 @@ describe("cssPath.selector", function () {
                 nodeType: 1,
                 parentNode: {
                     nodeName: "form", children: [{
-                        nodeType: 1, nodeName: "input", getAttribute: function (id) {
+                        nodeType: 1, nodeName: "input", getAttribute: function () {
                             return "id";
                         }
                     }]
                 },
-                getAttribute: function (id) {
+                getAttribute: function () {
                     return "id";
                 },
                 nodeName: "input"
@@ -229,7 +230,7 @@ describe("cssPath.path", function () {
                 it("get path of " + fakeElementSelector.type, (function (fakeElementSelector) {
                     return function () {
                         pathTest(fakeElementSelector);
-                    }
+                    };
                 }(fakeElementSelector)));
             }
         }
