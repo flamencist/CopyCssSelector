@@ -1,4 +1,4 @@
-/* global cssPath */
+/* global SelectorGenerator */
 let clickedElement;
 
 function copyToClipboard(text) {
@@ -18,7 +18,8 @@ document.addEventListener("mousedown", function (event) {
 
 chrome.runtime.onMessage.addListener(function (request) {
     if(request && request.target === "copy"){
-        let cssPathObject = cssPath(clickedElement, window.document.querySelectorAll.bind(window.document));
-        copyToClipboard(cssPathObject.selector);
+        let selectorGenerator = new SelectorGenerator({querySelectorAll:window.document.querySelectorAll.bind(window.document)});
+        let selector = selectorGenerator.getSelector(clickedElement);
+        copyToClipboard(selector);
     }
 });

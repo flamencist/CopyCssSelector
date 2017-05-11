@@ -1,9 +1,20 @@
-/*global cssPath, watchSelector */
+/*global SelectorGenerator, watchSelector */
 chrome.devtools.panels.elements.createSidebarPane(
     "Css Path",
     function (sidebar) {
+        function createObject(selectorGenerator, node){
+            return Object.create(null, {
+                selector: {value: selectorGenerator.getSelector(node), writable: true},
+                path: {value: selectorGenerator.getPath(node)},
+                element: {value: node, writable: true}
+            });
+        }
         function updateElementProperties() {
-            sidebar.setExpression("var result = (" + cssPath + ")($0,window.document.querySelectorAll.bind(window.document)); (" + watchSelector + ")(result,$$,inspect); result;");
+            sidebar.setExpression("var selectorGenerator = new ("+ SelectorGenerator +")({querySelectorAll:window.document.querySelectorAll.bind(window.document)});" +
+                    "console.log(selectorGenerator);" +
+                "var result = (" + createObject + ")(selectorGenerator,$0);" +
+                    "console.log(result);" +
+                " (" + watchSelector + ")(result,$$,inspect); result;");
         }
 
         updateElementProperties();

@@ -10,6 +10,10 @@ const eslint = require("gulp-eslint");
 const src = __dirname + "\\src";
 const jsonEditor = require("gulp-json-editor");
 
+gulp.task("copy", function(){
+    return gulp.src("./node_modules/selector-generator/src/SelectorGenerator.js")
+        .pipe(gulp.dest("./src/js"));
+});
 gulp.task("crx", function () {
     return gulp.src("./src")
         .pipe(crx({
@@ -25,12 +29,15 @@ gulp.task("zip", function () {
         .pipe(gulp.dest("./build"));
 });
 
-gulp.task("test", function (done) {
+gulp.task("test", ["copy"],function (done) {
     return new Server({
         configFile: __dirname + "/karma.conf.js",
         singleRun: true
     }, done).start();
 });
+
+gulp.task("build",["copy","increment"]);
+gulp.task("pack",["zip","crx"]);
 
 gulp.task("increment", function () {
     var numbers = manifest.version.split(".");
@@ -53,4 +60,4 @@ gulp.task("eslint", function () {
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });
-gulp.task("default", ["test", "increment", "zip", "crx"]);
+gulp.task("default", ["test","eslint","build","pack"]);

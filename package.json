@@ -39,5 +39,8 @@
     "karma-phantomjs-launcher": "^1.0.2",
     "karma-safari-launcher": "^1.0.0",
     "phantomjs-prebuilt": "^2.1.13"
+  },
+  "dependencies": {
+    "selector-generator": "^0.1.1"
   }
 }
