@@ -11,7 +11,7 @@ const src = __dirname + "\\src";
 const jsonEditor = require("gulp-json-editor");
 
 gulp.task("copy", function(){
-    return gulp.src("./node_modules/selector-generator/src/SelectorGenerator.js")
+    return gulp.src("./node_modules/selector-generator/src/selectorGenerator.js")
         .pipe(gulp.dest("./src/js"));
 });
 gulp.task("crx",["build"], function () {

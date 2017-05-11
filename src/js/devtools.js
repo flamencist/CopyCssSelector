@@ -11,9 +11,7 @@ chrome.devtools.panels.elements.createSidebarPane(
         }
         function updateElementProperties() {
             sidebar.setExpression("var selectorGenerator = new ("+ SelectorGenerator +")({querySelectorAll:window.document.querySelectorAll.bind(window.document)});" +
-                    "console.log(selectorGenerator);" +
                 "var result = (" + createObject + ")(selectorGenerator,$0);" +
-                    "console.log(result);" +
                 " (" + watchSelector + ")(result,$$,inspect); result;");
         }
 
