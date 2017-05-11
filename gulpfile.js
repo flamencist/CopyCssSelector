@@ -14,7 +14,7 @@ gulp.task("copy", function(){
     return gulp.src("./node_modules/selector-generator/src/SelectorGenerator.js")
         .pipe(gulp.dest("./src/js"));
 });
-gulp.task("crx", function () {
+gulp.task("crx",["build"], function () {
     return gulp.src("./src")
         .pipe(crx({
             privateKey: fs.readFileSync("./certs/key.pem", "utf8"),
@@ -23,7 +23,7 @@ gulp.task("crx", function () {
         .pipe(gulp.dest("./build"));
 });
 
-gulp.task("zip", function () {
+gulp.task("zip",["build"], function () {
     return gulp.src("./src/**")
         .pipe(zip(manifest.name + ".zip"))
         .pipe(gulp.dest("./build"));
@@ -37,7 +37,7 @@ gulp.task("test", ["copy"],function (done) {
 });
 
 gulp.task("build",["copy","increment"]);
-gulp.task("pack",["zip","crx"]);
+gulp.task("pack",["zip", "crx"]);
 
 gulp.task("increment", function () {
     var numbers = manifest.version.split(".");
