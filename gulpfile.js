@@ -7,11 +7,17 @@ const Server = require("karma").Server;
 const zip = require("gulp-zip");
 const shell = require("gulp-shell");
 const eslint = require("gulp-eslint");
+const del = require("del");
 const src = __dirname + "\\src";
 const jsonEditor = require("gulp-json-editor");
+const selectorGeneratorSrc = "./node_modules/selector-generator/selector-generator.js";
 
-gulp.task("copy", function(){
-    return gulp.src("./node_modules/selector-generator/src/selectorGenerator.js")
+gulp.task("clean", function(){
+    return del(["./src/js/selector-generator.js"]);
+});
+
+gulp.task("copy",["clean"], function(){
+    return gulp.src(selectorGeneratorSrc)
         .pipe(gulp.dest("./src/js"));
 });
 gulp.task("crx",["build"], function () {
@@ -54,7 +60,7 @@ gulp.task("increment", function () {
 
 gulp.task("chrome", shell.task(["\"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --load-extension=" + src]));
 
-gulp.task("eslint", function () {
+gulp.task("eslint", ["copy"], function () {
     return gulp.src(["./src/js/**/*.js", "./tests/*.spec.js"])
         .pipe(eslint())
         .pipe(eslint.format())

@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/flamencist/CssPath",
   "devDependencies": {
+    "del": "^2.2.2",
     "eslint": "^3.7.1",
     "gulp": "3.9.1",
     "gulp-crx-pack": "^1.0.1",
