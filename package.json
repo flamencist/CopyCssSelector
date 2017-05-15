@@ -1,5 +1,5 @@
 {
-  "name": "CssPath",
+  "name": "CopyCssSelector",
   "version": "0.3.0",
   "description": "usefull lib for getting selector from web element ",
   "main": "index.js",
@@ -18,9 +18,9 @@
   "author": "A.Chermyanin (flamencist)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/flamencist/CssPath/issues"
+    "url": "https://github.com/flamencist/CopyCssSelector/issues"
   },
-  "homepage": "https://github.com/flamencist/CssPath",
+  "homepage": "https://github.com/flamencist/CopyCssSelector",
   "devDependencies": {
     "del": "^2.2.2",
     "eslint": "^3.7.1",
@@ -42,6 +42,6 @@
     "phantomjs-prebuilt": "^2.1.13"
   },
   "dependencies": {
-    "selector-generator": "^0.1.1"
+    "selector-generator": "^0.2.2"
   }
 }

@@ -33,7 +33,6 @@ chrome.devtools.panels.elements.createSidebarPane(
             sidebar.setExpression(buildExpression());
         }
 
-
         updateElementProperties();
         chrome.devtools.panels.elements.onSelectionChanged.addListener(updateElementProperties);
     });
