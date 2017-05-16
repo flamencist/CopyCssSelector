@@ -1,6 +1,6 @@
 {
   "name": "CopyCssSelector",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "usefull lib for getting selector from web element ",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/flamencist/CssPath.git"
+    "url": "https://github.com/flamencist/CopyCssSelector.git"
   },
   "keywords": [
     "selector",
@@ -42,6 +42,6 @@
     "phantomjs-prebuilt": "^2.1.13"
   },
   "dependencies": {
-    "selector-generator": "^0.2.2"
+    "selector-generator": "^0.3.1"
   }
 }

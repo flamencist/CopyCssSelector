@@ -1,7 +1,7 @@
 {
   "name": "Copy Css Selector",
   "short_name": "CopyCssSelector",
-  "version": "0.3.0.37",
+  "version": "0.4.0.0",
   "description": "Extends the Developer Tools and context menu, adding a sidebar that displays the css path of DOM element.",
   "devtools_page": "devtools.html",
   "background": {
@@ -21,12 +21,16 @@
     "clipboardWrite"
   ],
   "content_scripts": [{
+    "all_frames": true,
     "matches": [
       "*://*/*"
     ],
     "js": [
       "js/selector-generator.js",
       "js/content.js"
+    ],
+    "css": [
+      "css/style.css"
     ]
   }]
 }
