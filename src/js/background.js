@@ -11,7 +11,9 @@ chrome.contextMenus.create({
 
 chrome.runtime.onInstalled.addListener((details)=>{
     if(["install", "update"].some((reason)=>details.reason === reason)){
-        injectScriptsInAllTabs();
+        setTimeout(()=>{
+            injectScriptsInAllTabs();
+        },5000);
     }
 });
 
