@@ -250,3 +250,6 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 src/js/selector-generator.js
+
+# npm
+package-lock.json
