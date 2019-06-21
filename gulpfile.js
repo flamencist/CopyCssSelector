@@ -36,7 +36,7 @@ gulp.task("zip",["build"], function () {
 });
 
 gulp.task("test", ["copy"],function (done) {
-    return new Server({
+    new Server({
         configFile: __dirname + "/karma.conf.js",
         singleRun: true
     }, done).start();
