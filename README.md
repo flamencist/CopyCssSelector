@@ -11,3 +11,14 @@ Based on [selector-generator.js](https://github.com/flamencist/SelectorGenerator
 ![copy css selector extension](example_2.png)
 ![copy css selector extension](example_3.png)
 
+### License
+
+This software is distributed under the terms of the MIT License (MIT).
+
+### Authors
+
+Alexander Chermyanin / [LinkedIn](https://www.linkedin.com/in/alexander-chermyanin)
+
+
+
+Contributions and bugs reports are welcome.
