@@ -8,6 +8,10 @@ Extension helps get selectors from elements
 
 Based on [selector-generator.js](https://github.com/flamencist/SelectorGenerator)
 
+Help support the project:
+
+<a href="https://www.buymeacoffee.com/flamencist" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+
 ![copy css selector extension](example_2.png)
 ![copy css selector extension](example_3.png)
 
